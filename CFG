@@ -1,0 +1,40 @@
+A variable is a combination of letters and digits in any order. A variable, known as an ID, has an alphabet of E = {A..z, 0-9}
+where an ID is:
+
+ID -> : type & ((digit | letter)* (digit* | letter+)) 
+
+digit -> {0..9}
+letter -> {A..z}
+type -> {uix, ix, fx, cx, bool, vx}
+
+By definition, an ID can contain any combination of digits or letters, however, cannot be a digit itself.
+
+Assignments to variables is as such:
+
+Assign -> ID T | ;
+T -> = (val | field); | -> (val | field); | => (val | field);
+
+Where val is the weakly typed value to be assigned to ID. A weakly typed value is a value that must agree with the ID's type at initialization.
+However, it can be explicitly converted after initialization. There are no implicit conversions within this language, and explicit conversions
+must be convertible to a respective type. For example, an integer cannot be converted to floating point, however, if a ui16 must be
+explicitly converted, it can be done with any of the other uix types, where x is bits wide the value is. In assembly, the variable
+will have to be reallocated to match this conversion unless optimizations for the program take place during compilation.
+
+Example assignments / declarations:
+
+speed: ui32 -> 64; [ID: type & -> val;] //default assignment operator
+speed: ui32 +> 64; [ID: type & +> val;] //copy operator, if field instead of val, copy field into ID
+speed: ui32 => 64; [ID: type & => val;] //move operator, if field instead of val, move value of field into ID
+
+By default, the copy and move operator will act as the default assign operator '->' if a field is not present on the RHS (comments above explain behavior if field is present on the RHS.)
+
+Types have three components, prefix, root, suffix.
+prefix E -> {i, f, c, bool, u, v}
+prefix -> (u | (i | f | c )) | (bool | v)
+
+root E -> {4, 8, 16, 32, 64, 128, 256}
+root -> (u | (i | f)) E+ //(u | (i | f)) is a subset of prefix
+
+suffix E -> {p, r}
+suffix -> ((v | bool) E*) | root E*
+

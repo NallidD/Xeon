@@ -1,0 +1,294 @@
+primitive types:
+    prefixes: tells what type of the field is
+        i -> int
+        f -> float
+        c -> char
+        bool -> boolean
+        u -> unsigned (preceds all other prefixes)
+        v -> void
+    root: tells what the size of the field is in bits
+        8
+        16
+        32
+        64
+        128
+        256
+    suffix: if it a reference or pointer
+        p -> pointer
+        r -> reference
+
+example types:
+    ui32p
+    f32
+    i8
+    c
+    vp
+
+declaring fields / variables
+    speed: f64
+    count: ui32p
+    next: vp
+
+initializing fields:
+    inline initialization:
+        speed: f64 -> 2.23
+        count: ui32p -> addr(speed)
+        next: vp -> count
+
+Storage containers:
+    Tuples: can hold up to n items specified by the user
+        coordinates: {f32, f32} -> {64.7523, 98.5651}
+        fn_ptrs: {p, p} -> { addr(fn1), addr(fn2) }
+        length_width_height: {ui32, ui32, ui64} -> {0,0,0}
+        uninit_tuple: {c, c}
+
+    Pairs: can hold 2 items and must contain 2 items
+        directory: [cp, ui32] -> {"my directory name", 1342523}
+
+    Tuple and Pair aliasing:
+        coordinate: {longitude: f32, latitude: f32} -> {64.7523, 98.5651}
+        
+        note: coordinate will be treated as an object if types are aliased. Without an alias, it will be treated as just memory.
+        Aliasing allows you to change individual members by name, while non-aliased will have to have modifications to all of the
+        values it holds.
+
+Operators:
+    + addition          USAGE: field -> field2 + field3, fn(field1 + field2), [OPTIONAL ->] field1 + field2
+    - subtraction       USAGE: field -> field2 - field3, fn(field1 - field2), [OPTIONAL ->] field1 - field2
+    / division          USAGE: field -> field2 / field3, fn(field1 / field2), [OPTIONAL ->] field1 / field2
+    * multiplication    USAGE: field -> field2 * field3, fn(field1 * field2), [OPTIONAL ->] field1 * field2
+    % modulo            USAGE: field -> field2 % field3, fn(field1 % field2), [OPTIONAL ->] field1 % field2
+    -> assignment       USAGE: resulting_field -> [expression]
+    : range             USAGE: [from, to], [object.field from, to], [from, object.field to], [object.field from, object.field to]
+                                for(field from : field to), for(from : to), while(1:5), while([obj.field from, obj.field to])
+                                (: my_tuple), (: my_pair)
+
+    ^ power             USAGE: field -> field1^2, [OPTIONAL ->] field^3
+    ! not               USUAGE: field -> !true, field -> !0, field -> !(j > i) ? true : false, [OPTIONAL ->] !null
+    => move             USUAGE: field -> field1 => field2, [OPTIONAL ->] field => field1
+    +> copy             USUAGE: field -> field +> field2, [OPTIONAL ->] field +> field1
+
+    >> slr              USUAGE: field >> 2, field = field1 >> 2, field >> expression, field >>= 1
+    << sll              USUAGE: field << 2, field = field1 << 2, field << expression, field <<=1
+    $ ptr to value      USUAGE: $field_ptr, field -> $my_ptr, addr(field) => my_int_ptr
+    & dereference       USUAGE: &field_ptr, field -> &my_ptr, &addr(field) +> my_int
+                            note: similarly, use field: ui32r -> addr(field1) if storing addresses of type ui32, effective for all primitives.
+
+Bitwise Operators:
+    & and               USUAGE: field -> field1 & field2, [OPTIONAL ->] field & field1
+    | or                USUAGE: field -> field1 | field2, [OPTIONAL ->] field | field2
+    ^ xor               USUAGE: field -> field1 | field2, [OPTIONAL ->] field ^ field1
+    ~ not               USUAGE: field -> field1 ~ field2, [OPTIONAl ->] field ~ field1
+
+Logical operators:
+    && or and           USUAGE: field -> field1 && field2, [OPTIONAL ->] field && field1
+    || or or            USUAGE: field -> field1 || field2, [OPTIONAL ->] field || field1
+    ! or not            USUAGE: field -> !field1, field -> field1 && !(field2)
+
+Keywords:
+    abstract - in base objects, abstract is applied to member methods that are to be implemented in the derived object.
+               This works for heirarchy of base-derived objects.
+    array[(SIZE)] [TYPE] - allocates an array of size SIZE of type TYPE. ex: scores: array[7] ui32 -> {100}
+    attribute([DESCRIPTOR][, [VALUE]]) - treats the applied DESCRIPTOR to the specified type and field given. VALUE may or may not be required.
+        for specified DESCRIPTOR.
+    base - an object descriptor to ensure that the object can be used for derived classes
+    asm [asm_lang] { ... } - lets user use assembly of specified type asm_lang between the { ... }
+    break - breaks out of the current conditional statement
+    case - specified conditional for switch statements
+    constraint [constraint_value] - a multiuse concept for constraining code to only accepts certain requirements.
+            - if constraint_value = {OBJECT, TYPE}: will throw an error if OBJECT is not of type TYPE. 
+            - if constraint_value = [a, b:c]: will throw an error if parameter a is not in range between b and c
+            - if constraint_value = return_exact: if a function is called within another function, that function must return the same type as its caller.
+        (ex: base object flower; derived->flower object rose;)
+    current:
+    bool - a boolean type evaulating to either true or false (!0, or 0)
+    const - describes value of field to be constant (but not address)
+    constaddr - describes an address to be constant (but not value)
+    constall - describes both value and address to be constant
+    copy - copies value field into field2 (field copy field2, same as field +> field2)
+    declare [NAME] -> [TYPE]: NAME will reflect a type of TYPE
+    default - default case for conditionals
+    derived - an object descriptor that tells the compiler / user a base object exists for this object
+        (ex: derived->flower object rose;)
+    extern "[lang]" - allows different linkage types for specified lang
+    false - boolean value, evaluates to 0
+    fn(...) : [TYPE] - declares a function that returns TYPE. if TYPE == NULL, void is assumed.
+    generic - describes a generic field, function, or object.
+        field: generic
+        class: generic
+        fn(object1: generic)
+    if - conditional statement if (<expression> [<logical operator> <expression>])
+    in - used to iterate through container objects or array / vectors. e.g. for(x -> 0 in 5) {goes from 0 to 5},
+         for(field in field2) (if field is the same type as field2, iteration is done from field to field2)
+    mod - modulo : field mod field2 (same computation as field % field1, more readable)
+    move - moves field into field1 (field move field1, same as field => field1)
+    mut - allows const functions to modify a member of any container without modifying all the members
+    object - a.k.a. a class, a class can contain member variables and member methods.
+    packet [type] - an attribute specifier to a type that treats the variable as variadic.
+    pri - an object method/member descriptor that makes the method/member not accessible when an object field is calling that
+          method/member
+    pub - an object method/member descriptor that makes the method/member accessible when an object field is calling that
+          method/member
+    requires [OBJECT.fn] - if a generic is passable into a function, the requires keyword will throw an error if OBJECT or OBJECT.fn is not present within the compilation.
+    static - when applied to a field, exactly one copy will exist for each implementation files that the field is included in.
+             when applied to object declaration (i.e. static object foo {...}), means it cannot be heap allocated
+             when applied to object field members, exactly one copy of that member exists for every similar objects
+                note: this applies to base and derived classes
+    structure - a chunk of contiguous memory containing fields. Structures can only support field members, no methods can be implemented
+    true - boolean value, evaluates to !0
+    union - another type of structure, except that all the members are stored in the same memory location. No member methods are allowed.
+    unpack [call] [attr] - unpacks a packet. If call is void, a list of type caller (field) is created, otherwise the function caller will
+                    be called with each subsequent list member being used to make a call stack member.
+            - attr values:
+                - itr: uses iterative instead of recursive calls for calls to function call
+                - unfold: If compiler options are turned on, (-opt>=1 and -debug isn't present), then nothing happens.
+                          Otherwise, will generate unfolded loops in assembly, else the compiler makes the decission.
+                - unique: Treats every member as a unique member instead of part of the variadic list
+                - rev: uses a reverse order of the variadic list 
+    unsafe - when applied to a field, this tells the compiler that this field will have changing values between threads
+             and thus will keep a copy of itself in each thread created.
+    volatile - when applied to a field, this tells the compiler that this field will have changing values between threads,
+               however, its previous state is recorded by the parent thread and the modified state is recorded by the child thread
+    vector((SIZE_OPTIONAL)) [TYPE] - allocates a dynamically growing linked list of size SIZE_OPTIONAL, if not specified, assumes size of 0
+        ex: speeds: vector f32 -> 2.1
+            note: speeds.size is 1 since it is initialized with 2.1. If no value is given, it would be size of 0.
+    whatis(obj/struct/union, [OPTIONAL...]) - prints contents of a structure / union / object if applicable. structures and unions will
+             have their names printed while objects will have the members and method names printed. Optionally, you may add
+             an attribute to OPTIONAL that is whatis specific. e.g. whatis(myobject, .members), whatis(myobject, .methods),
+             whatis(myobject, .members, .type)
+
+             whatis.attributes:
+                - .type - prints the types of the members or return types of methods
+                - .member - seek only for the members
+                - .method - seek only for the methods
+                    note: excluding .member and .method assumes both members and methods to be printed if applicable
+                - .values - prints the values of the structure, union, and object
+                - .union - prints what type is currently using memory in the union (if we're using a float or int in the
+                            current instance of the union.)
+                - .size - prints the size of the members in bytes
+                - .base - prints out the object's base class if applicable
+                - .derived - prints out all object instance that are derived from the object stated in first argument
+                - .addr - prints out the current address of the first argument
+                - .ptr - prints out all the pointer members of the first argument
+                - .abstract - prints out all the abstract methods
+    
+classes in Xeon:
+
+    to declare a class in Xeon
+    
+    object Entity {
+
+        private {
+
+            position{f32, f32, f32};
+            String name;
+            next: vp
+            
+        }
+
+        public {
+
+            Entity() { // constructor
+
+                position: {32.1, 0.0, 55.565};
+                name: "John Doe";
+                next: null
+
+            }
+
+            fn get_pos() : {f32, f32, f32} {
+
+                return position;
+
+            }
+
+            fn get_name() : String {
+
+                return name;
+
+            }
+
+            fn get_next() : vp {
+
+                return next;
+
+            }
+
+        }
+
+    }
+
+main program and file
+*/
+    File: app.xn
+*/
+
+object Calculator {
+
+    pri {
+
+        uiResult: ui64;
+        iResult: i64;
+        fResult: f64;
+
+    }
+
+    pub {
+
+        fn Calculator : {
+
+            uiResult -> 0;
+            iResult -> 0;
+            fResult -> 0;
+
+        }
+
+        fn Calculator(uiResult: ui64, iResult: i64, fResult: f64) : {
+
+            self.uiResult = uiResult;
+            self.iResult = iResult;
+            self.fResult = f64;
+
+        }
+
+        fn Add(values: generic pack) contraint {values, {ui64, i64, f64}} : typeof(values) {
+
+            return values.current + unpack Add(values)
+
+        }
+
+        fn Sub(values: generic pack) contraint {values, {ui64, i64, f64}} : typeof(values) {
+
+            return values.current - unpack Add(values)
+
+        }
+
+        fn Mult(values: generic pack) contraint {values, {ui64, i64, f64}} : typeof(values) {
+
+            return values.current * unpack Add(values)
+
+        }
+
+        fn Div(values: generic pack) contraint {values, {ui64, i64, f64}} : typeof(values) {
+
+            return values.current / unpack Add(values)
+
+        }
+
+        fn Mod(values: generic pack) contraint {values, {ui64, i64, f64}} : typeof(values) {
+
+            return values.current % unpack Add(values)
+
+        }
+
+        fn Dv(expression: String) : String {
+
+            
+
+        }
+
+
+    }
+    
+
+}
